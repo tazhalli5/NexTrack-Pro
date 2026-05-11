@@ -3,7 +3,7 @@
 NexTrack Pro is a high-performance, mobile-first expense management system built with a focus on **Data Analytics Mastery** and **Native-Feel User Experience**. This project demonstrates advanced JavaScript logic, state persistence, and responsive UI engineering.
 
 ## 🚀Live Demo
-https://tazhalli5.github.io/EXPENSE-TRACKER/
+https://tazhalli5.github.io/NexTrack-Pro/
 
 ## 🚀 Key Features
 
