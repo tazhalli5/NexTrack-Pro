@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NexTrack | Personal Finance OS</title>
+    <title>NexTrack Pro | Array Mastery Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; background: #f8fafc; }
@@ -12,18 +13,20 @@
         .sheet-up { transform: translateY(0%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .sheet-down { transform: translateY(100%); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-item { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="p-2 min-h-screen flex flex-col">
 
     <div id="onboarding" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-10 hidden">
-        <div class="text-6xl mb-6 animate-bounce">🚀</div>
+        <div class="text-6xl mb-6">💎</div>
         <h2 class="text-3xl font-800 text-slate-900 mb-2">Welcome!</h2>
-        <p class="text-slate-400 text-center mb-10">Set up your profile to start tracking like a pro.</p>
+        <p class="text-slate-400 text-center mb-10">Configure your professional dashboard.</p>
         <div class="w-full space-y-4">
             <input id="setup-name" type="text" placeholder="Your Name" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none ring-2 ring-slate-100 focus:ring-indigo-500">
-            <input id="setup-limit" type="number" placeholder="Monthly Limit (₹)" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none ring-2 ring-slate-100 focus:ring-indigo-500">
-            <button onclick="saveProfile()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-xl">GET STARTED</button>
+            <input id="setup-limit" type="number" placeholder="Monthly Budget (₹)" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none ring-2 ring-slate-100 focus:ring-indigo-500">
+            <button onclick="saveProfile()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-xl tap-effect">LAUNCH SYSTEM</button>
         </div>
     </div>
 
@@ -31,7 +34,7 @@
         
         <header class="p-6 pb-2 flex justify-between items-center">
             <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Good Day,</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enterprise Ledger</p>
                 <h1 id="display-name" class="text-2xl font-800 text-slate-900 leading-none">Guest</h1>
             </div>
             <button onclick="toggleSettings(true)" class="p-3 bg-slate-50 rounded-full tap-effect">⚙️</button>
@@ -41,21 +44,27 @@
             <div id="status-card" class="bg-slate-900 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p id="limit-label" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest italic">Limit: ₹0</p>
+                        <p id="limit-label" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Limit: ₹0</p>
                         <h2 id="total-spent" class="text-4xl font-800 mt-1">₹0</h2>
                     </div>
-                    <span id="health-tag" class="text-[9px] font-bold px-3 py-1 bg-white/10 rounded-full">HEALTHY</span>
+                    <span id="health-tag" class="text-[9px] font-bold px-3 py-1 bg-white/10 rounded-full">INITIALIZING</span>
                 </div>
                 <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                     <div id="bar" class="bg-indigo-500 h-full transition-all duration-1000" style="width: 0%"></div>
                 </div>
             </div>
 
+            <div id="analytics-insight" class="mt-6 p-4 bg-indigo-50 rounded-2xl hidden">
+                <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Spending Insight</p>
+                <p id="insight-text" class="text-xs font-bold text-indigo-900 mt-1"></p>
+            </div>
+
             <div class="mt-8 space-y-4">
                 <div class="flex justify-between items-center px-2">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Transaction Timeline</h3>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">History</h3>
+                    <input oninput="handleSearch(this.value)" type="text" placeholder="Search..." class="text-xs bg-slate-100 px-3 py-1 rounded-lg outline-none w-24 focus:w-32 transition-all">
                 </div>
-                <div id="history-container" class="space-y-3 pb-20"></div>
+                <div id="history-container" class="space-y-3 pb-24"></div>
             </div>
         </div>
 
@@ -66,94 +75,132 @@
         <div onclick="toggleEntry(false)" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm pointer-events-auto"></div>
         <div class="bg-white rounded-t-[3rem] p-10 space-y-6 pointer-events-auto relative">
             <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto -mt-4 mb-6"></div>
-            <input id="title" type="text" placeholder="Expense Name" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none text-lg">
-            <input id="amount" type="number" placeholder="₹ Amount" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none text-lg">
-            <select id="category" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold appearance-none">
-                <option value="Food">🍱 Food & Dining</option>
+            <h3 class="text-xl font-bold text-center">New Transaction</h3>
+            <input id="title" type="text" placeholder="What did you buy?" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none text-md">
+            <input id="amount" type="number" placeholder="Amount (₹)" class="w-full p-4 bg-slate-50 rounded-2xl outline-none border-none text-md">
+            <select id="category" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold">
+                <option value="Food">🍱 Food & Drinks</option>
                 <option value="Transport">🛺 Transport</option>
                 <option value="Shopping">🛍️ Shopping</option>
+                <option value="Bills">⚡ Utilities</option>
                 <option value="Other">✨ Other</option>
             </select>
-            <button onclick="addExpense()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold shadow-xl tap-effect uppercase">Secure Log</button>
+            <button onclick="addExpense()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold shadow-xl tap-effect">SECURE LOG</button>
         </div>
     </div>
 
     <div id="settings-modal" class="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-8 hidden">
         <div class="bg-white w-full rounded-[2.5rem] p-8 space-y-6 text-center">
-            <h3 class="text-xl font-bold">Adjust Settings</h3>
+            <h3 class="text-xl font-bold">Preferences</h3>
             <div class="space-y-4">
-                <input id="edit-limit" type="number" placeholder="New Limit" class="w-full p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100">
-                <button onclick="updateLimit()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Update Limit</button>
-                <button onclick="resetAll()" class="w-full text-red-500 font-bold py-3">Format System (Reset All)</button>
+                <input id="edit-limit" type="number" placeholder="Adjust Limit" class="w-full p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100">
+                <button onclick="updateLimit()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save Settings</button>
+                <button onclick="resetAll()" class="w-full text-red-500 font-bold py-3">Hard Reset (Wipe All)</button>
             </div>
-            <button onclick="toggleSettings(false)" class="text-slate-400 font-bold text-sm">Close</button>
+            <button onclick="toggleSettings(false)" class="text-slate-400 font-bold text-sm">Cancel</button>
         </div>
     </div>
 
     <script>
-        let userData = JSON.parse(localStorage.getItem('nextrack_profile')) || { name: "", limit: 0 };
-        let history = JSON.parse(localStorage.getItem('nextrack_history')) || [];
+        /**
+         * ARRAY METHODS MASTERY & STATE MANAGEMENT
+         */
+        let user = JSON.parse(localStorage.getItem('nt_user')) || { name: "", limit: 0 };
+        let history = JSON.parse(localStorage.getItem('nt_history')) || [];
+        let searchTerm = "";
 
         function init() {
-            if (!userData.name) {
+            if (!user.name) {
                 document.getElementById('onboarding').classList.remove('hidden');
             } else {
-                updateUI();
+                render();
             }
         }
 
         function saveProfile() {
-            const name = document.getElementById('setup-name').value;
-            const limit = document.getElementById('setup-limit').value;
-            if(!name || !limit) return;
-            userData = { name, limit: parseFloat(limit) };
-            localStorage.setItem('nextrack_profile', JSON.stringify(userData));
+            const n = document.getElementById('setup-name').value;
+            const l = document.getElementById('setup-limit').value;
+            if(!n || !l) return;
+            user = { name: n, limit: parseFloat(l) };
+            localStorage.setItem('nt_user', JSON.stringify(user));
             document.getElementById('onboarding').classList.add('hidden');
-            updateUI();
+            render();
         }
 
-        function updateUI() {
-            document.getElementById('display-name').innerText = `Hello, ${userData.name}`;
-            document.getElementById('limit-label').innerText = `Limit: ₹${userData.limit}`;
+        function render() {
+            document.getElementById('display-name').innerText = `Hello, ${user.name}`;
+            document.getElementById('limit-label').innerText = `Limit: ₹${user.limit}`;
             
-            const list = document.getElementById('history-container');
-            list.innerHTML = '';
+            // --- MASTERY: .reduce() to calculate total ---
+            const total = history.reduce((sum, item) => sum + item.amount, 0);
             
-            let total = 0;
-            history.forEach(item => {
-                total += item.amount;
+            // --- MASTERY: .filter() for searching ---
+            const filteredData = history.filter(item => 
+                item.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            // --- MASTERY: .map() & reduce to find top category ---
+            const categoryTotals = history.reduce((acc, curr) => {
+                acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
+                return acc;
+            }, {});
+
+            const topCat = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b, "None");
+
+            // Update DOM Elements
+            document.getElementById('total-spent').innerText = `₹${total.toLocaleString('en-IN')}`;
+            const perc = (total / user.limit) * 100;
+            updateVisualHealth(perc, topCat);
+            
+            // Render History List using .forEach()
+            const container = document.getElementById('history-container');
+            container.innerHTML = '';
+            
+            filteredData.slice().reverse().forEach(item => {
                 const div = document.createElement('div');
-                div.className = "bg-slate-50 p-4 rounded-2xl flex justify-between items-center animate-in slide-in-from-bottom duration-300";
+                div.className = "animate-item bg-slate-50 p-4 rounded-2xl flex justify-between items-center";
                 div.innerHTML = `
                     <div class="flex items-center gap-4">
                         <div class="text-xl">${getEmoji(item.category)}</div>
-                        <div><p class="font-bold text-slate-800 text-sm">${item.title}</p></div>
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm">${item.title}</p>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase">${item.category}</p>
+                        </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-bold text-slate-800 text-sm">₹${item.amount}</p>
-                        <button onclick="deleteItem(${item.id})" class="text-[9px] text-red-400 font-black uppercase">Remove</button>
+                        <p class="font-bold text-slate-900 text-sm">₹${item.amount}</p>
+                        <button onclick="deleteItem(${item.id})" class="text-[9px] text-red-400 font-bold uppercase opacity-50">Delete</button>
                     </div>
                 `;
-                list.prepend(div);
+                container.appendChild(div);
             });
 
-            document.getElementById('total-spent').innerText = `₹${total}`;
-            const perc = (total / userData.limit) * 100;
+            localStorage.setItem('nt_history', JSON.stringify(history));
+        }
+
+        function updateVisualHealth(perc, topCat) {
             const bar = document.getElementById('bar');
             const card = document.getElementById('status-card');
             const tag = document.getElementById('health-tag');
+            const insight = document.getElementById('analytics-insight');
 
             bar.style.width = `${Math.min(perc, 100)}%`;
             
+            if(history.length > 0) {
+                insight.classList.remove('hidden');
+                document.getElementById('insight-text').innerText = `Most of your money is going to ${topCat}.`;
+            }
+
             if(perc > 90) { 
-                card.className = "bg-rose-600 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700";
-                tag.innerText = "CRITICAL"; bar.style.backgroundColor = "white";
-            } else if (perc > 60) {
-                card.className = "bg-amber-500 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700";
-                tag.innerText = "WARNING"; bar.style.backgroundColor = "white";
+                card.className = "bg-rose-600 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700 shadow-xl shadow-rose-200";
+                tag.innerText = "CRITICAL"; 
+                if ("vibrate" in navigator) navigator.vibrate(200); 
+            } else if (perc > 65) {
+                card.className = "bg-amber-500 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700 shadow-xl shadow-amber-200";
+                tag.innerText = "WARNING";
             } else {
-                card.className = "bg-slate-900 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700";
-                tag.innerText = "HEALTHY"; bar.style.backgroundColor = "#6366f1";
+                card.className = "bg-slate-900 p-8 rounded-[2rem] text-white space-y-6 transition-all duration-700 shadow-xl shadow-slate-300";
+                tag.innerText = "STABLE";
             }
         }
 
@@ -164,45 +211,49 @@
             if(!t.value || !a.value) return;
 
             history.push({ id: Date.now(), title: t.value, amount: parseFloat(a.value), category: c.value });
-            localStorage.setItem('nextrack_history', JSON.stringify(history));
             t.value = ''; a.value = '';
             toggleEntry(false);
-            updateUI();
+            render();
         }
 
         function deleteItem(id) {
+            // --- MASTERY: .filter() for deleting ---
             history = history.filter(i => i.id !== id);
-            localStorage.setItem('nextrack_history', JSON.stringify(history));
-            updateUI();
+            render();
+        }
+
+        function handleSearch(val) {
+            searchTerm = val;
+            render();
         }
 
         function updateLimit() {
-            const newLim = document.getElementById('edit-limit').value;
-            if(!newLim) return;
-            userData.limit = parseFloat(newLim);
-            localStorage.setItem('nextrack_profile', JSON.stringify(userData));
+            const val = document.getElementById('edit-limit').value;
+            if(!val) return;
+            user.limit = parseFloat(val);
+            localStorage.setItem('nt_user', JSON.stringify(user));
             toggleSettings(false);
-            updateUI();
+            render();
         }
 
         function resetAll() {
-            if(confirm("Wipe all data and profile?")) {
+            if(confirm("Factory Reset? This clears EVERYTHING.")) {
                 localStorage.clear();
                 window.location.reload();
             }
         }
 
         function toggleEntry(open) {
-            const drawer = document.getElementById('entry-drawer');
-            drawer.classList.toggle('sheet-down', !open);
-            drawer.classList.toggle('sheet-up', open);
+            const d = document.getElementById('entry-drawer');
+            d.classList.toggle('sheet-down', !open);
+            d.classList.toggle('sheet-up', open);
         }
 
         function toggleSettings(open) {
             document.getElementById('settings-modal').classList.toggle('hidden', !open);
         }
 
-        function getEmoji(cat) { return { Food:'🍱', Transport:'🛺', Shopping:'🛍️' }[cat] || '✨'; }
+        function getEmoji(cat) { return { Food:'🍱', Transport:'🛺', Shopping:'🛍️', Bills:'⚡' }[cat] || '✨'; }
 
         window.onload = init;
     </script>
